@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Revision Tracker</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2447d6">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Revise">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#eef1f5;--card:#fff;--ink:#17202e;--mute:#667085;--line:#dde2ea;--acc:#2447d6;--ok:#12805c;--bad:#c43d2e;--warn:#b86e00;box-sizing:border-box}
+@media (prefers-color-scheme:dark){:root{--bg:#0f141d;--card:#18202d;--ink:#e8ecf3;--mute:#93a0b5;--line:#2a3547;--acc:#7b94ff;--ok:#46c79b;--bad:#ff7d6e;--warn:#f0a63c}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:660px;margin:0 auto;padding:14px 14px 90px}
+h2{margin:18px 2px 8px;font-size:15px;font-weight:600;color:var(--mute)}
+.hdr{display:flex;gap:10px;margin-bottom:12px}
+.cd{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+.cd b{font-size:28px;font-weight:800;line-height:1;display:block}
+.cd span{color:var(--mute);font-size:13px}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px}
+.tab{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:6px 12px;font:inherit;cursor:pointer;display:flex;gap:6px;align-items:center}
+.tab.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.tab i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.tab em{font-style:normal;font-size:12px;opacity:.75}
+.card{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--c,var(--acc));border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.sub{font-size:13px;color:var(--mute)}
+.ttl{font-size:18px;font-weight:600;margin:2px 0 8px;overflow-wrap:anywhere}
+.cyc{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.cyc big{font-size:30px;font-weight:800;line-height:1}
+.cyc small{color:var(--mute);font-size:14px}
+.tag{font-size:12px;border-radius:6px;padding:1px 7px;background:var(--bg);border:1px solid var(--line);white-space:nowrap}
+.tag.f{color:var(--acc);border-color:var(--acc)}.tag.r{color:var(--warn);border-color:var(--warn)}
+.dots{display:flex;gap:5px;margin:8px 0;flex-wrap:wrap}
+.dot{width:22px;height:8px;border-radius:4px;background:var(--line)}
+.dot.d{background:var(--ok)}.dot.x{background:var(--bad)}.dot.n{background:var(--c,var(--acc))}
+.st{font-weight:600}.st.o{color:var(--bad)}.st.t{color:var(--warn)}.st.u{color:var(--mute)}
+.meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--mute);margin:4px 0 8px}
+.notes{white-space:pre-wrap;font-size:14px;background:var(--bg);border-radius:8px;padding:8px 10px;margin:6px 0;overflow-wrap:anywhere}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px}
+button,input,select,textarea{font:inherit;color:inherit}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 14px;cursor:pointer;font-weight:600}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff;flex:1}
+.btn.bad{border-color:var(--bad);color:var(--bad);flex:1}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:#fff}
+.btn.sm{padding:4px 10px;font-weight:400;font-size:13px;min-height:34px}
+@media (pointer:coarse){.btn.sm,.lnk{min-height:42px;padding:6px 14px}}
+.lnk{background:none;border:none;color:var(--acc);cursor:pointer;padding:0;font-weight:600}
+input,select,textarea{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+label{display:block;font-size:13px;color:var(--mute);margin:12px 0 4px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+.chip.d{background:var(--ok);color:#fff;border-color:var(--ok)}.chip.x{background:var(--bad);color:#fff;border-color:var(--bad)}
+.empty{text-align:center;color:var(--mute);padding:28px 10px;border:1px dashed var(--line);border-radius:14px}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px)}
+nav button{flex:1;max-width:130px;background:none;border:none;padding:13px 2px;cursor:pointer;color:var(--mute);font-weight:600;font-size:14px}
+nav button.on{color:var(--acc);box-shadow:inset 0 3px var(--acc)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.srow{display:flex;gap:8px;align-items:center}
+.srow input[type=color]{width:46px;padding:2px;height:40px;flex:none}
+details summary{cursor:pointer;color:var(--mute);margin:14px 2px 8px;font-weight:600}
+.hint{font-size:13px;color:var(--mute);margin-top:4px}
+.warn{color:var(--warn)}
+.bars{display:flex;gap:3px;align-items:flex-end;height:90px;margin-top:8px}
+.bar{flex:1;background:var(--acc);border-radius:3px 3px 0 0;min-height:2px}
+.bar.t{background:var(--warn)}
+.bl{display:flex;gap:3px;font-size:10px;color:var(--mute)}.bl span{flex:1;text-align:center}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:5px 4px;text-align:left;border-bottom:1px solid var(--line)}th{color:var(--mute);font-weight:600}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<nav id="nav"></nav>
+<script>
+const K='revision-tracker-v2';
+const DEF=()=>({v:2,settings:{intervals:[1,3,7,14],deadline:'2026-11-20',exam:'2026-12-06',window:7,bufferEnd:2},
+subjects:[{id:'s1',name:'Biology',color:'#12805c',deadline:'',exam:''},{id:'s2',name:'Chemistry',color:'#2447d6',deadline:'',exam:''},{id:'s3',name:'Physics',color:'#b86e00',deadline:'',exam:''}],topics:[]});
+let S,view='today',tab='all',filt='all',q='',msg='',undo=null,editId=null,lastSub='',storeOK=true;
+const isD=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&!isNaN(new Date(s+'T00:00:00'));
+function clean(o){
+  const d=DEF();if(!o||typeof o!=='object')return d;
+  const st=Object.assign({},d.settings,o.settings||{});
+  st.intervals=(Array.isArray(st.intervals)?st.intervals:[]).map(Number).filter(n=>n>0&&isFinite(n));if(!st.intervals.length)st.intervals=d.settings.intervals;
+  if(!isD(st.deadline))st.deadline=d.settings.deadline;if(!isD(st.exam))st.exam=d.settings.exam;
+  st.window=Math.max(1,+st.window||7);st.bufferEnd=Math.max(0,+st.bufferEnd||0);
+  const cid=x=>String(x==null?'':x).replace(/[^\w-]/g,'');
+  const subs=(Array.isArray(o.subjects)?o.subjects:d.subjects).filter(s=>s&&cid(s.id)&&s.name).slice(0,5).map(s=>({id:cid(s.id),name:String(s.name),color:/^#[0-9a-f]{6}$/i.test(s.color)?s.color:'#888888',deadline:isD(s.deadline)?s.deadline:'',exam:isD(s.exam)?s.exam:''}));
+  const ids=subs.map(s=>s.id);
+  const tops=(Array.isArray(o.topics)?o.topics:[]).filter(t=>t&&cid(t.id)&&t.title&&ids.includes(cid(t.subject))&&isD(t.studied)&&Array.isArray(t.reviews)).map(t=>({id:cid(t.id),subject:cid(t.subject),title:String(t.title),notes:String(t.notes||''),studied:t.studied,weak:!!t.weak,gaps:Array.isArray(t.gaps)&&t.gaps.length?t.gaps.map(Number).filter(n=>n>0):null,
+    reviews:t.reviews.filter(r=>r&&isD(r.due)).map(r=>({due:r.due,done:isD(r.done)?r.done:null,result:r.result,kind:r.kind||'std'}))})).filter(t=>t.reviews.length);
+  return{v:2,settings:st,subjects:subs,topics:tops};
+}
+function load(){try{const r=localStorage.getItem(K)||localStorage.getItem('revise-tracker-v1');if(r)return clean(JSON.parse(r))}catch(e){storeOK=false}return DEF()}
+function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){storeOK=false}}
+S=load();
+const P=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(a,b-1,c)};
+const I=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const A=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const TODAY=()=>I(new Date());
+const diff=(a,b)=>Math.round((P(a)-P(b))/864e5);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=s=>P(s).toLocaleDateString(undefined,{day:'numeric',month:'short'});
+const sub=id=>S.subjects.find(x=>x.id===id)||{name:'?',color:'#888'};
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3);
+const cfg=id=>{const s=S.subjects.find(x=>x.id===id)||{};return{dl:s.deadline||S.settings.deadline,ex:s.exam||S.settings.exam}};
+const parseGaps=s=>String(s).split(/[,\s]+/).map(Number).filter(n=>n>0&&isFinite(n)).sort((a,b)=>a-b);
+const endOf=(studied,sid)=>{const c=cfg(sid);return P(studied)<P(c.dl)?P(c.dl):A(P(c.ex),-S.settings.bufferEnd)};
+
+function plan(studied,seed,sid,gaps){
+  const st=S.settings,s=P(studied),end=endOf(studied,sid),out=[];
+  (gaps&&gaps.length?gaps:st.intervals).forEach(n=>{const d=A(s,n);if(d<=end)out.push({due:I(d),done:null,kind:'std'})});
+  const last=out.length?P(out[out.length-1].due):s;
+  if(last<end){
+    const ws=A(end,-(st.window-1));
+    let f=last>=ws?end:A(ws,seed%st.window);
+    if(f<=last)f=A(last,1);if(f>end)f=end;
+    out.push({due:I(f),done:null,kind:'final'});
+  }
+  if(!out.length)out.push({due:I(A(s,1)),done:null,kind:'std'});
+  return out;
+}
+function rebuild(t){
+  const done=t.reviews.filter(r=>r.done),sd=done.filter(r=>r.kind!=='retry').length;
+  const rt=t.reviews.filter(r=>!r.done&&r.kind==='retry'),rd=rt.map(r=>r.due);
+  t.reviews=done.concat(rt,plan(t.studied,S.topics.indexOf(t),t.subject,t.gaps).slice(sd).filter(r=>!rd.includes(r.due)));
+  if(!t.reviews.length)t.reviews=[{due:I(A(new Date(),1)),done:null,kind:'std'}];
+}
+function rebuildAll(){if(confirm('Recalculate all pending reviews with the current ladder and dates? Completed reviews are kept; dates you moved by hand are reset.')){S.topics.forEach(rebuild);save();render()}}
+function askRebuild(){if(S.topics.length&&confirm('Apply these changes to the pending reviews of your existing topics too?')){S.topics.forEach(rebuild);save()}}
+const cur=t=>t.reviews.findIndex(r=>!r.done);
+
+function act(id,ok){
+  const t=S.topics.find(x=>x.id===id);if(!t)return;const i=cur(t);if(i<0)return;
+  undo={id,snap:JSON.stringify(t),text:`"${t.title}" marked ${ok?'remembered':'forgot'}.`};
+  const r=t.reviews[i];r.done=TODAY();r.result=ok?'ok':'forgot';
+  if(ok){if(r.kind==='retry')t.weak=false}else{t.weak=true;t.reviews.splice(i+1,0,{due:I(A(new Date(),1)),done:null,kind:'retry'})}
+  save();render();
+}
+function doUndo(){if(!undo)return;const k=S.topics.findIndex(x=>x.id===undo.id),o=JSON.parse(undo.snap);if(k>=0)S.topics[k]=o;else if(S.subjects.some(x=>x.id===o.subject))S.topics.push(o);undo=null;save();render()}
+function mv(id,i,v){const t=S.topics.find(x=>x.id===id);if(t&&isD(v)){t.reviews[i].due=v;save();render()}}
+function del(id){const t=S.topics.find(x=>x.id===id);if(t&&confirm(`Delete "${t.title}" and its schedule?`)){undo={id,snap:JSON.stringify(t),text:`Deleted "${t.title}".`};S.topics=S.topics.filter(x=>x.id!==id);save();render()}}
+const ub=()=>undo?`<div class="card" style="--c:var(--acc)">${esc(undo.text)} <button class="lnk" onclick="doUndo()">Undo</button></div>`:'';
+function editFrom(id){go('topics');filt='all';q='';editId=id;render()}
+
+function card(t){
+  const sj=sub(t.subject),i=cur(t),n=t.reviews.length,td=TODAY();
+  const dots=t.reviews.map((r,k)=>`<span class="dot ${r.done?(r.result==='forgot'?'x':'d'):k===i?'n':''}"></span>`).join('');
+  if(i<0)return `<div class="card" style="--c:${sj.color}"><div class="top"><div><div class="sub">${esc(sj.name)}</div><div class="ttl">${esc(t.title)}</div></div><span class="tag">All ${n} reviews done</span></div><div class="dots">${dots}</div></div>`;
+  const r=t.reviews[i],d=diff(r.due,td);
+  const status=d<0?`<span class="st o">Overdue by ${-d} day${d<-1?'s':''}</span>`:d===0?`<span class="st t">Due today</span>`:`<span class="st u">Due ${d===1?'tomorrow':'in '+d+' days'} (${fmt(r.due)})</span>`;
+  const tag=r.kind==='final'?'<span class="tag f">Final pass</span>':r.kind==='retry'?'<span class="tag r">Retry after forgetting</span>':'';
+  const nxt=t.reviews[i+1]?`Next after this: ${fmt(t.reviews[i+1].due)}`:'This is the last review';
+  const ago=diff(td,t.studied);
+  return `<div class="card" style="--c:${sj.color}">
+  <div class="top"><div><div class="sub">${esc(sj.name)}</div><div class="ttl">${esc(t.title)}</div></div>${t.weak?'<span class="tag r">Weak</span>':''}</div>
+  <div class="cyc"><big>Review ${i+1}</big><small>of ${n}</small>${tag}</div>
+  <div class="dots">${dots}</div><div>${status}</div>
+  <div class="meta"><span>Studied ${fmt(t.studied)} (${ago<=0?'today':ago+' day'+(ago===1?'':'s')+' ago'})</span><span>${nxt}</span><span>${t.reviews.filter(x=>x.done).length} done</span></div>
+  ${t.notes?`<details><summary style="margin:4px 0">Show notes (try recalling first)</summary><div class="notes">${esc(t.notes)}</div></details>`:''}
+  <div class="row"><button class="btn ok" onclick="act('${t.id}',true)">Remembered</button><button class="btn bad" onclick="act('${t.id}',false)">Forgot</button></div>
+  <div class="row"><span class="sub">Move this review to</span><input type="date" style="width:auto;padding:4px 8px" value="${r.due}" onchange="mv('${t.id}',${i},this.value)"><span style="flex:1"></span><button class="btn sm" onclick="editFrom('${t.id}')">Edit</button><button class="btn sm" onclick="del('${t.id}')">Delete</button></div></div>`;
+}
+
+function today(){
+  const td=TODAY(),g=tab==='all'?{dl:S.settings.deadline,ex:S.settings.exam}:cfg(tab);
+  const list=S.topics.filter(t=>tab==='all'||t.subject===tab).map(t=>({t,i:cur(t)})).filter(x=>x.i>=0).map(x=>({t:x.t,due:x.t.reviews[x.i].due}));
+  const over=list.filter(x=>x.due<td).sort((a,b)=>a.due<b.due?-1:1),now=list.filter(x=>x.due===td);
+  const soon=list.filter(x=>x.due>td&&diff(x.due,td)<=7).sort((a,b)=>a.due<b.due?-1:1);
+  const cnt=id=>S.topics.filter(t=>(id==='all'||t.subject===id)&&cur(t)>=0&&t.reviews[cur(t)].due<=td).length;
+  const dd=x=>diff(x,td),lbl=n=>n<0?-n:n;
+  let h=`<div class="hdr"><div class="cd"><b>${lbl(dd(g.dl))}</b><span>days ${dd(g.dl)<0?'since':'to'} revise-complete (${fmt(g.dl)})</span></div><div class="cd"><b>${lbl(dd(g.ex))}</b><span>days ${dd(g.ex)<0?'since':'to'} exam (${fmt(g.ex)})</span></div></div>`;
+  if(!storeOK)h+=`<div class="card" style="--c:var(--bad)">Browser storage is blocked here, so nothing is saved after you close this page. Open the file directly in a normal browser window, or use Export in Setup.</div>`;
+  h+=backupBanner();h+=ub();
+  h+=`<div class="tabs"><button class="tab ${tab==='all'?'on':''}" onclick="tab='all';render()">All <em>${cnt('all')}</em></button>`+S.subjects.map(s=>`<button class="tab ${tab===s.id?'on':''}" onclick="tab='${s.id}';render()"><i style="background:${s.color}"></i>${esc(s.name)} <em>${cnt(s.id)||'✓'}</em></button>`).join('')+`</div>`;
+  if(!S.topics.length)h+=`<div class="empty">No topics yet. Study something, then log it so its reviews get scheduled.<br><br><button class="btn pri" onclick="go('log')">Log a topic</button></div>`;
+  else if(!over.length&&!now.length)h+=`<div class="empty">Nothing due${tab==='all'?'':' in this subject'}. Done for today.</div>`;
+  if(over.length)h+=`<h2>Overdue (${over.length})</h2>`+over.map(x=>card(x.t)).join('');
+  if(now.length)h+=`<h2>Due today (${now.length})</h2>`+now.map(x=>card(x.t)).join('');
+  if(soon.length)h+=`<details><summary>Coming up in the next 7 days (${soon.length})</summary>${soon.map(x=>card(x.t)).join('')}</details>`;
+  return h;
+}
+
+function log(){
+  if(!S.subjects.length)return `<div class="empty">Add a subject in Setup first.<br><br><button class="btn pri" onclick="go('setup')">Open Setup</button></div>`;
+  const sel=lastSub||(tab!=='all'?tab:S.subjects[0].id);
+  return `<h2>Log what you studied</h2>${msg?`<div class="card" style="--c:var(--ok)">${msg}</div>`:''}
+  <label>Subject</label><select id="lsub" onchange="prev()">${S.subjects.map(s=>`<option value="${s.id}" ${s.id===sel?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
+  <label>Topic title (one per line to add several)</label><textarea id="ltit" rows="3" placeholder="Krebs cycle"></textarea>
+  <label>Notes (optional, used when adding a single topic)</label><textarea id="lnot" rows="3"></textarea>
+  <div class="g2"><div><label>Date studied</label><input type="date" id="ldate" value="${TODAY()}" onchange="prev()"></div>
+  <div><label>Review gaps for this topic (optional)</label><input id="lgap" placeholder="${S.settings.intervals.join(', ')}" onchange="prev()"></div></div>
+  <div class="hint" id="lprev"></div>
+  <div class="row"><button class="btn pri" onclick="addT()">Save topic</button></div>`;
+}
+function prev(){
+  const e=document.getElementById('ldate'),p=document.getElementById('lprev');if(!e||!p||!isD(e.value))return;
+  const g=parseGaps(document.getElementById('lgap').value),sid=document.getElementById('lsub').value;
+  const pl=plan(e.value,S.topics.length,sid,g),want=(g.length?g:S.settings.intervals).length+1;
+  p.innerHTML='Planned reviews: '+pl.map((r,i)=>`<b>${i+1}</b>: ${fmt(r.due)}${r.kind==='final'?' (final)':''}`).join(' · ')+(pl.length<want?`<br><span class="warn">Only ${pl.length} of ${want} reviews fit before ${fmt(I(endOf(e.value,sid)))}. Use shorter gaps if this topic needs more.</span>`:'');
+}
+function addT(){
+  const titles=document.getElementById('ltit').value.split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!titles.length){alert('Enter a topic title.');return}
+  const subj=document.getElementById('lsub').value,notes=document.getElementById('lnot').value.trim(),date=document.getElementById('ldate').value;
+  if(!isD(date)){alert('Pick a valid date.');return}
+  const g=parseGaps(document.getElementById('lgap').value);lastSub=subj;
+  titles.forEach((ti,k)=>S.topics.push({id:uid(),subject:subj,title:ti,notes:titles.length===1?notes:'',studied:date,weak:false,gaps:g.length?g:null,reviews:plan(date,S.topics.length+k,subj,g)}));
+  save();msg=`Saved ${titles.length} topic${titles.length>1?'s':''}. First review: ${fmt(S.topics[S.topics.length-1].reviews[0].due)}. <button class="lnk" onclick="go('today')">Go to Today</button>`;render();
+}
+
+function editForm(t){
+  return `<div class="card" style="--c:${sub(t.subject).color}"><label>Subject</label><select id="esub">${S.subjects.map(s=>`<option value="${s.id}" ${s.id===t.subject?'selected':''}>${esc(s.name)}</option>`).join('')}</select>
+  <label>Title</label><input id="etit" value="${esc(t.title)}"><label>Notes</label><textarea id="enot" rows="3">${esc(t.notes)}</textarea>
+  <div class="g2"><div><label>Date studied</label><input type="date" id="edate" value="${t.studied}"></div><div><label>Review gaps (blank = default)</label><input id="egap" value="${t.gaps?t.gaps.join(', '):''}"></div></div>
+  <div class="hint">Changing the date, subject or gaps recalculates pending reviews. Completed reviews stay.</div>
+  <div class="row"><button class="btn pri" onclick="saveEdit('${t.id}')">Save</button><button class="btn" onclick="editId=null;render()">Cancel</button></div></div>`;
+}
+function saveEdit(id){
+  const t=S.topics.find(x=>x.id===id),ti=document.getElementById('etit').value.trim(),d=document.getElementById('edate').value;
+  if(!t||!ti||!isD(d)){alert('Title and a valid date are required.');return}
+  const sj=document.getElementById('esub').value,g=parseGaps(document.getElementById('egap').value),gs=g.length?g:null;
+  const changed=sj!==t.subject||d!==t.studied||JSON.stringify(gs)!==JSON.stringify(t.gaps);
+  Object.assign(t,{title:ti,notes:document.getElementById('enot').value.trim(),subject:sj,studied:d,gaps:gs});
+  if(changed)rebuild(t);editId=null;save();render();
+}
+function topics(){
+  const ql=q.toLowerCase();
+  const l=S.topics.filter(t=>(filt==='all'||(filt==='weak'?t.weak:t.subject===filt))&&(!ql||t.title.toLowerCase().includes(ql)||t.notes.toLowerCase().includes(ql))).slice().reverse();
+  let h=ub()+`<h2>All topics (${S.topics.length})</h2><input placeholder="Search topics" value="${esc(q)}" onchange="q=this.value;render()"><div class="tabs" style="margin-top:8px"><button class="tab ${filt==='all'?'on':''}" onclick="filt='all';render()">All</button><button class="tab ${filt==='weak'?'on':''}" onclick="filt='weak';render()">Weak (${S.topics.filter(t=>t.weak).length})</button>`+S.subjects.map(s=>`<button class="tab ${filt===s.id?'on':''}" onclick="filt='${s.id}';render()"><i style="background:${s.color}"></i>${esc(s.name)}</button>`).join('')+`</div>`;
+  if(!l.length)return h+`<div class="empty">No topics here.</div>`;
+  return h+l.map(t=>{if(editId===t.id)return editForm(t);const sj=sub(t.subject);return `<div class="card" style="--c:${sj.color}"><div class="top"><div><div class="sub">${esc(sj.name)} · studied ${fmt(t.studied)}</div><div class="ttl">${esc(t.title)}</div></div>${t.weak?'<span class="tag r">Weak</span>':''}</div>
+  <div class="chips">${t.reviews.map((r,i)=>`<span class="chip ${r.done?(r.result==='forgot'?'x':'d'):''}">${i+1}: ${fmt(r.due)}${r.kind==='final'?' final':''}${r.kind==='retry'?' retry':''}</span>`).join('')}</div>
+  ${t.notes?`<div class="notes">${esc(t.notes)}</div>`:''}<div class="row"><button class="btn sm" onclick="editId='${t.id}';render()">Edit</button><button class="btn sm" onclick="del('${t.id}')">Delete</button></div></div>`}).join('');
+}
+
+function progress(){
+  const td=TODAY();
+  const rows=S.subjects.map(s=>{const ts=S.topics.filter(t=>t.subject===s.id),rv=ts.flatMap(t=>t.reviews.filter(r=>r.done)),ok=rv.filter(r=>r.result==='ok').length;
+    const ov=ts.filter(t=>cur(t)>=0&&t.reviews[cur(t)].due<td).length,c=cfg(s.id);
+    return `<tr><td><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${s.color}"></i> ${esc(s.name)}</td><td>${ts.length}</td><td>${ts.filter(t=>cur(t)<0).length}</td><td>${rv.length?Math.round(ok/rv.length*100)+'%':'-'}</td><td>${ov}</td><td>${ts.filter(t=>t.weak).length}</td><td>${Math.max(0,diff(c.dl,td))}d</td></tr>`}).join('');
+  const days=[];for(let k=0;k<14;k++){const d=I(A(new Date(),k));days.push({d,n:S.topics.reduce((a,t)=>a+t.reviews.filter(r=>!r.done&&(k===0?r.due<=d:r.due===d)).length,0)})}
+  const mx=Math.max(1,...days.map(x=>x.n));
+  return `<h2>Progress by subject</h2><div class="card" style="overflow-x:auto"><table><tr><th>Subject</th><th>Topics</th><th>Finished</th><th>Recall</th><th>Overdue</th><th>Weak</th><th>To deadline</th></tr>${rows||'<tr><td colspan=7>No subjects</td></tr>'}</table>
+  <div class="hint">Finished = every scheduled review done. Recall = share of reviews marked Remembered.</div></div>
+  <h2>Workload for the next 14 days (all subjects)</h2><div class="card"><div class="bars">${days.map((x,i)=>`<div class="bar ${i===0?'t':''}" title="${fmt(x.d)}: ${x.n}" style="height:${Math.round(x.n/mx*100)}%"></div>`).join('')}</div>
+  <div class="bl">${days.map(x=>`<span>${P(x.d).getDate()}</span>`).join('')}</div><div class="hint">Orange bar = today, including overdue. Busiest day: ${Math.max(...days.map(x=>x.n))} reviews.</div></div>`;
+}
+
+function setup(){
+  const st=S.settings;
+  return `<h2>Review ladder and dates (defaults for all subjects)</h2>
+  <label>Review gaps in days after studying</label><input id="sint" value="${st.intervals.join(', ')}">
+  <div class="hint">Example: 1, 3, 7, 14. A final pass is always added before the deadline, and gaps that land after the deadline are dropped.</div>
+  <div class="g2"><div><label>Revise-complete deadline</label><input type="date" id="sdl" value="${st.deadline}"></div><div><label>Exam date</label><input type="date" id="sex" value="${st.exam}"></div>
+  <div><label>Final pass window (days before deadline)</label><input type="number" min="1" max="60" id="swin" value="${st.window}"></div><div><label>Topics studied after the deadline finish this many days before the exam</label><input type="number" min="0" max="60" id="sbuf" value="${st.bufferEnd}"></div></div>
+  <div class="row"><button class="btn pri" onclick="saveSet()">Save settings</button><button class="btn" onclick="rebuildAll()">Recalculate pending reviews</button></div>
+  <h2>Subjects (max 5). Dates are optional and override the defaults.</h2>
+  ${S.subjects.map(s=>`<div class="card" style="--c:${s.color}"><div class="srow"><input type="color" value="${s.color}" onchange="subEdit('${s.id}','color',this.value)"><input value="${esc(s.name)}" onchange="subEdit('${s.id}','name',this.value)"><button class="btn sm" onclick="subDel('${s.id}')">Remove</button></div>
+  <div class="g2"><div><label>Deadline for this subject</label><input type="date" value="${s.deadline}" onchange="subDate('${s.id}','deadline',this.value)"></div><div><label>Exam for this subject</label><input type="date" value="${s.exam}" onchange="subDate('${s.id}','exam',this.value)"></div></div></div>`).join('')}
+  ${S.subjects.length<5?`<button class="btn" onclick="subAdd()">Add subject</button>`:''}
+  <h2>App and offline</h2><div class="card" style="--c:var(--ok)">Offline use: ${swState}<br>Storage protection: ${persisted===true?'on (the browser will not clear your data automatically)':persisted===false?'not granted. Install the app to improve this, and keep backups.':'checking'}<br>${deferred?'<div class="row"><button class="btn pri" onclick="installApp()">Install app</button></div>':'<span class="hint">To install: Chrome menu (three dots), then Install app or Add to Home screen.</span>'}</div>
+  <h2>Backup and data</h2><div class="row"><button class="btn" onclick="exp()">Export JSON</button><button class="btn" onclick="document.getElementById('imp').click()">Import JSON</button><button class="btn bad" style="flex:none" onclick="wipe()">Erase everything</button><input type="file" id="imp" accept=".json" style="display:none" onchange="imp(this)"></div>
+  <div class="hint">Data lives in this browser only (${storeOK?'storage working':'storage blocked'}). Export a backup every week or so.</div>`;
+}
+function saveSet(){
+  const iv=parseGaps(document.getElementById('sint').value),dl=document.getElementById('sdl').value,ex=document.getElementById('sex').value;
+  if(!iv.length){alert('Enter at least one gap, like 1, 3, 7, 14');return}
+  if(!isD(dl)||!isD(ex)){alert('Pick both dates.');return}
+  if(dl>ex&&!confirm('The revise-complete deadline is after the exam date. Save anyway?'))return;
+  S.settings={intervals:iv,deadline:dl,exam:ex,window:Math.max(1,+document.getElementById('swin').value||7),bufferEnd:Math.max(0,+document.getElementById('sbuf').value||0)};
+  save();askRebuild();render();
+}
+function subEdit(id,k,v){const s=S.subjects.find(x=>x.id===id);if(!s)return;v=v.trim();if(k==='name'&&!v)return render();s[k]=v;save();render()}
+function subDate(id,k,v){const s=S.subjects.find(x=>x.id===id);if(!s)return;s[k]=isD(v)?v:'';save();askRebuild();render()}
+function subAdd(){const cols=['#c43d2e','#7a3fd1','#0e8aa6','#d6336c','#5c6b00'];S.subjects.push({id:uid(),name:'New subject',color:cols[S.subjects.length%5],deadline:'',exam:''});save();render()}
+function subDel(id){const n=S.topics.filter(t=>t.subject===id).length;if(confirm(n?`This also deletes ${n} topic(s). Continue?`:'Remove this subject?')){S.subjects=S.subjects.filter(s=>s.id!==id);S.topics=S.topics.filter(t=>t.subject!==id);if(tab===id)tab='all';if(filt===id)filt='all';save();render()}}
+function exp(){try{localStorage.setItem('rt-last-export',TODAY())}catch(e){}try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download='revision-backup-'+TODAY()+'.json';document.body.appendChild(a);a.click();a.remove()}catch(e){alert('Export failed in this environment.')}}
+function imp(el){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result);if(!o||!Array.isArray(o.topics)||!Array.isArray(o.subjects))throw 0;const n=clean(o);if(confirm(`Replace current data with this backup (${n.topics.length} topics)?`)){S=n;save();render()}}catch(e){alert('That file is not a valid backup.')}};r.readAsText(f);el.value=''}
+function wipe(){if(confirm('Erase all topics, subjects and settings? This cannot be undone.')&&confirm('Really erase everything? Export first if unsure.')){S=DEF();S.topics=[];save();tab='all';filt='all';render()}}
+
+const VIEWS=['today','log','topics','progress','setup'];
+function go(v){view=v;msg='';undo=null;editId=null;try{if(location.hash.slice(1)!==v)location.hash=v}catch(e){}render();try{window.scrollTo(0,0)}catch(e){}}
+window.addEventListener('hashchange',()=>{const v=location.hash.slice(1);if(VIEWS.includes(v)&&v!==view){view=v;msg='';undo=null;editId=null;render()}});
+try{const v=location.hash.slice(1);if(VIEWS.includes(v))view=v}catch(e){}
+function render(){
+  if(tab!=='all'&&!S.subjects.some(s=>s.id===tab))tab='all';
+  document.getElementById('app').innerHTML={today,log,topics,progress,setup}[view]();
+  document.getElementById('nav').innerHTML=[['today','Today'],['log','Log'],['topics','Topics'],['progress','Progress'],['setup','Setup']].map(([k,l])=>`<button class="${view===k?'on':''}" onclick="go('${k}')">${l}</button>`).join('');
+  if(view==='log')prev();
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&(view==='today'||view==='progress'))render()});
+let persisted=null,deferred=null,swState='not set up (open this app from its web address to enable)';
+function backupBanner(){
+  if(!S.topics.length)return '';
+  let last=null,since=null;try{last=localStorage.getItem('rt-last-export');since=localStorage.getItem('rt-since');if(!since){since=TODAY();localStorage.setItem('rt-since',since)}}catch(e){return ''}
+  const ref=last||since,n=diff(TODAY(),ref);
+  if(n<7)return '';
+  return `<div class="card" style="--c:var(--warn)">Back up your data. ${last?'Last backup was '+n+' days ago.':'You have not made a backup yet.'} <button class="lnk" onclick="exp();render()">Export now</button></div>`;
+}
+function installApp(){if(!deferred)return;deferred.prompt();deferred.userChoice.finally(()=>{deferred=null;render()})}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;if(view==='setup')render()});
+window.addEventListener('appinstalled',()=>{deferred=null;if(view==='setup')render()});
+try{if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().then(p=>{persisted=p;if(view==='setup')render()}).catch(()=>{})}}catch(e){}
+try{if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
+  navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{swState='ready. The app opens without internet.';if(view==='setup')render()}).catch(()=>{swState='could not be enabled in this browser';if(view==='setup')render()});
+}}catch(e){}
+render();
+</script>
+</body>
+</html>
